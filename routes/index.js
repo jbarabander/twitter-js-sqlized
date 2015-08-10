@@ -1,4 +1,6 @@
-var tweetBank = require('../tweetBank');
+// var tweetBank = require('../tweetBank');
+var Tweet = require('../models/index').Tweet;
+var User = require('../models/index').User;
 
 module.exports = function (io) {
 	var router = require('express').Router();
@@ -6,11 +8,18 @@ module.exports = function (io) {
 	router.get('/', function (req, res) {
 		// will trigger res.send of the index.html file
 		// after rendering with swig.renderFile
-		res.render('index', {
-			showForm: true,
-			title: 'Home',
-			tweets: tweetBank.list()
+		Tweet.findAll().then(function(result){
+			return result.map(function(element) {
+				return element.dataValues;
+			});
+		}).then(function(resultingSet) {
+			res.render('index', {
+				showForm: true,
+				title: 'Home',
+				tweets: resultingSet
+			});
 		});
+
 	});
 
 	router.get('/users/:name', function (req, res) {
