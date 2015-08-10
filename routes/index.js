@@ -8,11 +8,12 @@ module.exports = function (io) {
 	router.get('/', function (req, res) {
 		// will trigger res.send of the index.html file
 		// after rendering with swig.renderFile
-		Tweet.findAll().then(function(result){
+		Tweet.findAll({include: [User]}).then(function(result) {
 			return result.map(function(element) {
 				return element.dataValues;
 			});
 		}).then(function(resultingSet) {
+			console.log(resultingSet);
 			res.render('index', {
 				showForm: true,
 				title: 'Home',
