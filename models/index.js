@@ -21,8 +21,8 @@ twitterjsDB
   var User = require('./user')(twitterjsDB);
 
   // adds a UserId foreign key to the `Tweet` table
-  User.hasMany(Tweet);
-  Tweet.belongsTo(User);
+  User.hasMany(Tweet); //this creates the getTweets() methods
+  Tweet.belongsTo(User); //this creates the foreign key association of ModelId in user
 
   module.exports = {
       User: User,

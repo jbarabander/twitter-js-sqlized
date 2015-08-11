@@ -75,7 +75,9 @@ module.exports = function (io) {
 		}).then(function() {
 			io.sockets.emit('delete');
 			res.end();
-		})
+		}).catch(function(err) {
+			console.error(err);
+		});
 	});
 
 		// User.findOne({where: {name: name}}).then(function(user) {
