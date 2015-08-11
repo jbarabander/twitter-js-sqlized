@@ -47,10 +47,36 @@ module.exports = function (io) {
 	});
 
 	router.post('/submit', function (req, res) {
-		tweetBank.add(req.body.shenanigans, req.body.text);
-		var theNewTweet = tweetBank.list().pop();
-		io.sockets.emit('new_tweet', theNewTweet);
-		res.redirect('/');
+		name = req.body.shenanigans;
+		text = req.body.text;
+		User.findOne({where: {name: name}}).then(function(user) {
+			//default pictureUrl: https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png
+			if(!user){
+				User.create({
+					pictureUrl: 'https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png',
+					name: name
+				}).then(function(user) {
+					return user.get('id');
+				}).then(function(id){
+					Tweet.create({
+						UserId: id,
+						tweet: text
+					}).then(function(tweet){
+						io.sockets.emit('new_tweet', tweet);
+						res.redirect('/');});
+				});
+			}
+			else {
+				Tweet.create({
+					UserId: user.get('id'),
+					tweet: text
+				}).then(function(tweet){
+					io.sockets.emit('new_tweet', tweet);
+					res.redirect('/');
+				});
+			}
+		});
+		// var theNewTweet = tweetBank.list().pop();
 	});
 	return router;
 };
