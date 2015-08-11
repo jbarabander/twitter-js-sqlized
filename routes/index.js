@@ -2,6 +2,7 @@
 var Tweet = require('../models/index').Tweet;
 var User = require('../models/index').User;
 
+
 module.exports = function (io) {
 	var router = require('express').Router();
 
@@ -13,7 +14,7 @@ module.exports = function (io) {
 				return element.dataValues;
 			});
 		}).then(function(resultingSet) {
-			console.log(resultingSet);
+			// console.log(resultingSet);
 			res.render('index', {
 				showForm: true,
 				title: 'Home',
@@ -24,23 +25,25 @@ module.exports = function (io) {
 	});
 
 	router.get('/users/:name', function (req, res) {
-		var userTweets = tweetBank.find({
-			name: req.params.name
-		});
-		res.render('index', {
-			showForm: true,
-			title: req.params.name,
-			tweets: userTweets,
-			theName: req.params.name
+		User.findOne({
+			where: {name: req.params.name}
+		}).then(function(user){
+			return user.getTweets();
+		}).then(function(tweets) {
+			res.render('index', {
+				showForm: true,
+				title: req.params.name,
+				tweets: tweets,
+				theName: req.params.name
+			});
 		});
 	});
 
 	router.get('/users/:name/tweets/:id', function (req, res) {
 		var id = parseInt(req.params.id);
-		var theTweet = tweetBank.find({
-			id: id
+		Tweet.findOne({include: [User],where: {id: id}}).then(function(selectedTweet){
+			res.render('index', {title: req.params.name, tweets: [selectedTweet.dataValues]});
 		});
-		res.render('index', {title: req.params.name, tweets: theTweet})
 	});
 
 	router.post('/submit', function (req, res) {
