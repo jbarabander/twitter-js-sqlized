@@ -2,6 +2,7 @@
 var Tweet = require('../models/index').Tweet;
 var User = require('../models/index').User;
 
+console.log("I'm alive");
 
 module.exports = function (io) {
 	var router = require('express').Router();
@@ -25,17 +26,19 @@ module.exports = function (io) {
 	});
 
 	router.get('/users/:name', function (req, res) {
+		var renderObj = {
+			showForm: true,
+			title: req.params.name,
+			theName: req.params.name
+		};
 		User.findOne({
 			where: {name: req.params.name}
 		}).then(function(user){
+			renderObj.picture = user.pictureUrl;
 			return user.getTweets();
-		}).then(function(tweets) {
-			res.render('index', {
-				showForm: true,
-				title: req.params.name,
-				tweets: tweets,
-				theName: req.params.name
-			});
+		}).then(function(tweetz) {
+			renderObj.tweets = tweetz;
+			res.render('index', renderObj);
 		});
 	});
 
@@ -47,36 +50,67 @@ module.exports = function (io) {
 	});
 
 	router.post('/submit', function (req, res) {
+		console.log(req.body);
 		name = req.body.shenanigans;
 		text = req.body.text;
-		User.findOne({where: {name: name}}).then(function(user) {
-			//default pictureUrl: https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png
-			if(!user){
-				User.create({
-					pictureUrl: 'https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png',
-					name: name
-				}).then(function(user) {
-					return user.get('id');
-				}).then(function(id){
-					Tweet.create({
-						UserId: id,
-						tweet: text
-					}).then(function(tweet){
-						io.sockets.emit('new_tweet', tweet);
-						res.redirect('/');});
-				});
-			}
-			else {
+		User.findOrCreate({where: {name: name}, defaults: {pictureUrl: 'https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png'}})
+			.then(function(user){
+				return user[0].get('id');
+			}).then(function(id) {
 				Tweet.create({
-					UserId: user.get('id'),
+					UserId: id,
 					tweet: text
 				}).then(function(tweet){
 					io.sockets.emit('new_tweet', tweet);
 					res.redirect('/');
 				});
-			}
-		});
-		// var theNewTweet = tweetBank.list().pop();
+			}).catch(function(err) {
+				console.error(err);
+			});
 	});
+	router.delete('/:id', function(req, res){
+		id = req.params.id;
+		Tweet.findOne({where: {id: id}}).then(function(result) {
+			result.destroy();
+		}).then(function() {
+			io.sockets.emit('delete');
+			res.end();
+		})
+	});
+
+		// User.findOne({where: {name: name}}).then(function(user) {
+		// 	if(!user){
+		// 		User.create({
+		// 			pictureUrl: 'https://pbs.twimg.com/profile_images/378800000500453121/0f8ead5d3dbd4e3f747aaca6bf3b8d9a.png',
+		// 			name: name
+		// 		}).then(function(user) {
+		// 			return user.get('id');
+		// 		}).then(function(id){
+		// 			Tweet.create({
+		// 				UserId: id,
+		// 				tweet: text
+		// 			}).then(function(tweet){
+		// 				io.sockets.emit('new_tweet', tweet);
+		// 				res.redirect('/');});
+		// 		});
+		// 	}
+		// 	else {
+		// 		Tweet.create({
+		// 			UserId: user.get('id'),
+		// 			tweet: text
+		// 		}).then(function(tweet){
+		// 			io.sockets.emit('new_tweet', tweet);
+		// 			res.redirect('/');
+		// 		});
+		// 	}
+		// });
+		// var theNewTweet = tweetBank.list().pop();
 	return router;
 };
+
+// function tweetUpdater(){
+// 	Tweet.create({
+// 		UserID: user.get()
+//
+// 	});
+// }

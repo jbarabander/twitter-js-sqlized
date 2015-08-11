@@ -28,11 +28,14 @@
       <!-- display tweets here -->
       {% for tweet in tweets %}
         <div id="tweetbox">
-          <img src="{{tweet.User.dataValues.pictureUrl}}" height=70px/>
+          <div class={{tweet.id}}>
+          <img src="{{picture||tweet.User.dataValues.pictureUrl}}" height=70px class='{{tweet.id}}'/>
           <span class="content">
-            <a href="/users/{{tweet.User.dataValues.name}}" class="by">{{tweet.User.dataValues.name}}</a>
-            <a href="/users/{{tweet.User.dataValues.name}}/tweets/{{tweet.id}}">{{tweet.tweet}}</a>
-          </span>
+            <a href="/users/{{theName || tweet.User.dataValues.name}}">{{ theName || tweet.User.dataValues.name}}</a>
+            <a href="/users/{{theName || tweet.User.dataValues.name}}/tweets/{{tweet.id}}">{{tweet.tweet}}</a>
+            <!-- {% if showDelete %}<form action="/delete" method="DELETE"><button><span class='glyphicon glyphicon-remove'></span></button></form> {% endif %} -->
+            <button class='remove-button' id={{tweet.id}}>Delete</button></form>
+          </div>
         </div>
       {% endfor %}
 

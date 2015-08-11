@@ -63,7 +63,7 @@
       <div class="container">
         {% block content %}Welcome to Twitter.js{% endblock %}
       </div> <!-- end container -->
-      
+
     </div>
 
     <div id="footer">
@@ -81,13 +81,29 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
       // Load the socket.io library above, then connect to the server.
-      // Because the socket.io server is being run on the same server as your 
+      // Because the socket.io server is being run on the same server as your
       // Express instance, you can connect() without any arguments.
       var socket = io.connect();
+      $(document).ready(function(){
+        $('.remove-button').on('click', function(){
+          var id = this.id;
+          $.ajax({url: '/' + id, type: 'DELETE', success: function(){
+            $('.' + id).remove();
+          }})
+        });
+      })
+
       // When 'new_tweet' events are fired, do something with the packaged tweet
-      socket.on('new_tweet', function (tweet) { 
+      socket.on('new_tweet', function (tweet) {
         location.reload();
-      }); 
+      });
+      socket.on('delete', function() {
+        location.reload();
+      })
+      // socket.on('delete', function (deleted) {
+      //   location.reload();
+      // })
+
     </script>
   </body>
 </html>
